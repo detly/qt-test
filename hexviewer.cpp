@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <iostream>
 
 #include <QFileDialog>
@@ -13,6 +14,8 @@ HexViewer::HexViewer(QWidget *parent) :
     _fileReader(new FileReader())
 {
     _ui->setupUi(this);
+    
+    setState(HexViewer::WAITING);
 
     connect(
         _fileReader, &FileReader::stateChanged,
@@ -40,6 +43,15 @@ HexViewer::HexViewer(QWidget *parent) :
     _ui->hexTextView->setCurrentFont(fixedFont);
 }
 
+void HexViewer::setState(HexViewer::UIState state)
+{
+    bool openEnabled  = state == NEED_FILE || state == CAN_PROCESS;
+    bool startEnabled = state == CAN_PROCESS;
+
+    _ui->openButton->setEnabled(openEnabled);
+    _ui->startButton->setEnabled(startEnabled);
+}
+
 void HexViewer::loadData(QByteArray *data)
 {
     QString hexString = data->toHex();
@@ -57,21 +69,37 @@ void HexViewer::loadData(QByteArray *data)
 void HexViewer::updateFromFileReaderState(FileReader::State state)
 {
     FileReader::ReadingState rState = state.first;
+    HexViewer::UIState uiState;
 
-    bool startEnabled = (rState == FileReader::READY);
-    _ui->startButton->setEnabled(startEnabled);
-
-    bool openEnabled = (rState == FileReader::IDLE);
-    _ui->openButton->setEnabled(openEnabled);
-
-    if (rState == FileReader::READY)
+    switch (rState)
     {
-        _ui->hexTextView->clear();
+        case FileReader::IDLE:
+            uiState = HexViewer::NEED_FILE;
+            break;
+
+        case FileReader::READY:
+            uiState = HexViewer::CAN_PROCESS;
+            break;
+
+        case FileReader::STARTED:
+            uiState = HexViewer::PROCESSING;
+            break;
+
+        case FileReader::ERROR:
+            uiState = HexViewer::ERROR;
+            break;
+
+        default:
+            assert(0);
+            break;
     }
+
+    setState(uiState);
 }
 
 void HexViewer::on_startButton_clicked()
 {
+    setState(HexViewer::WAITING);
     emit readyForData();
 }
 
