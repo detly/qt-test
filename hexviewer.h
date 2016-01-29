@@ -24,7 +24,7 @@ signals:
     void readyForData();
 
 public slots:
-    void loadData(QByteArray *data);
+    void loadData(QByteArray data);
 
 private slots:
     void on_openButton_clicked();

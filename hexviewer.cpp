@@ -52,18 +52,21 @@ void HexViewer::setState(HexViewer::UIState state)
     _ui->startButton->setEnabled(startEnabled);
 }
 
-void HexViewer::loadData(QByteArray *data)
+void HexViewer::loadData(QByteArray data)
 {
-    QString hexString = data->toHex();
+    const int hexLength = 2;
 
-    for (int i = 0; i < hexString.length(); i+=2)
+    QString hexString = data.toHex();
+
+    QString renderString;
+    renderString.reserve(hexString.size() * 1.5);
+
+    for (int i = 0; i < hexString.length(); i += hexLength)
     {
-        _ui->hexTextView->insertPlainText(hexString.at(i));
-        _ui->hexTextView->insertPlainText(hexString.at(i+1));
-        _ui->hexTextView->insertPlainText(" ");
+        renderString.append(hexString.mid(i, hexLength) + " ");
     }
     
-    delete data;
+    _ui->hexTextView->insertPlainText(renderString);
 }
 
 void HexViewer::updateFromFileReaderState(FileReader::State state)

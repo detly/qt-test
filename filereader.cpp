@@ -36,7 +36,7 @@ void FileReader::startReading()
 
             while(!inFile.atEnd())
             {
-                QByteArray *qa = new QByteArray(inFile.read(DATA_SIZE));
+                QByteArray qa = inFile.read(DATA_SIZE);
                 qDebug() << "emitting dataRead()";
                 emit dataRead(qa);
             }

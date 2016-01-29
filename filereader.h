@@ -46,7 +46,7 @@ public:
     State state();
 
 signals:
-    void dataRead(QByteArray *data);
+    void dataRead(QByteArray data);
     void stateChanged(State newState);
 
 public slots:
