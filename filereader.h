@@ -25,7 +25,7 @@
  * file name. The file name can only be non-null if the reading state is READY.
  * 
  */
-class FileReader : public QThread
+class FileReader : public QObject
 {
     Q_OBJECT
 
@@ -40,14 +40,14 @@ public:
 
     typedef QPair<ReadingState, QString> State;
 
-    FileReader();
+    explicit FileReader(QObject *parent = 0);
     ~FileReader();
 
     State state();
 
 signals:
     void dataRead(QByteArray data);
-    void stateChanged(State newState);
+    void stateChanged(FileReader::State newState);
 
 public slots:
     void fileSelected(QString fileName);

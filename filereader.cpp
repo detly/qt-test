@@ -6,7 +6,8 @@
 
 #include "filereader.h"
 
-FileReader::FileReader() :
+FileReader::FileReader(QObject *parent) :
+    QObject(parent),
     _stateLock(),
     _state(IDLE, QString())
 {
@@ -20,6 +21,8 @@ void FileReader::fileSelected(QString fileName)
 void FileReader::startReading()
 {
     static const unsigned DATA_SIZE = 256;
+
+    unsigned debugCounter = 0;
 
     QString fileName = state().second;
 
@@ -37,7 +40,7 @@ void FileReader::startReading()
             while(!inFile.atEnd())
             {
                 QByteArray qa = inFile.read(DATA_SIZE);
-                qDebug() << "emitting dataRead()";
+                qDebug() << "emitting dataRead(): " << debugCounter;
                 emit dataRead(qa);
             }
         }

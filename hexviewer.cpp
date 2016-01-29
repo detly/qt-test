@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <iostream>
 
+#include <QObject>
+#include <QThread>
 #include <QFileDialog>
 #include <QFont>
 #include <QFontDatabase>
@@ -13,10 +15,30 @@ HexViewer::HexViewer(QWidget *parent) :
     _ui(new Ui::HexViewer),
     _fileReader(new FileReader())
 {
+    /* Initialise threading. */
+    qRegisterMetaType<FileReader::State>("FileReader::State");
+
+    QThread *readerThread = new QThread(this);
+    readerThread->setObjectName("ReaderThread");
+
+    connect(
+        readerThread, &QThread::finished,
+        _fileReader,  &QObject::deleteLater
+    );
+
+    _fileReader->moveToThread(readerThread);
+    readerThread->start();
+
+    /* UI setup. */
     _ui->setupUi(this);
-    
+
+    const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    _ui->hexTextView->setCurrentFont(fixedFont);
+
+    /* Set initial state. */
     setState(HexViewer::WAITING);
 
+    /* Wire everything up. */
     connect(
         _fileReader, &FileReader::stateChanged,
         this,        &HexViewer::updateFromFileReaderState
@@ -38,9 +60,6 @@ HexViewer::HexViewer(QWidget *parent) :
         this,        &HexViewer::fileSelected,
         _fileReader, &FileReader::fileSelected
     );
-
-    const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    _ui->hexTextView->setCurrentFont(fixedFont);
 }
 
 void HexViewer::setState(HexViewer::UIState state)
@@ -108,6 +127,16 @@ void HexViewer::on_startButton_clicked()
 
 void HexViewer::on_quitButton_clicked()
 {
+    close();
+}
+
+void HexViewer::closeEvent(QCloseEvent *event)
+{
+    event->accept();
+
+    _fileReader->thread()->quit();
+    _fileReader->thread()->wait();
+
     qApp->quit();
 }
 
@@ -122,5 +151,4 @@ void HexViewer::on_openButton_clicked()
 HexViewer::~HexViewer()
 {
     delete _ui;
-    delete _fileReader;
 }

@@ -2,6 +2,7 @@
 #define HEXVIEWER_H
 
 #include <QMainWindow>
+#include <QCloseEvent>
 #include "filereader.h"
 
 namespace Ui {
@@ -51,6 +52,9 @@ private:
     FileReader *_fileReader;
     void updateFromFileReaderState(FileReader::State state);
     void setState(UIState state);
+
+    /* Overrides QMainWindow */
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // HEXVIEWER_H
