@@ -6,10 +6,11 @@
 
 #include "filereader.h"
 
-FileReader::FileReader(QObject *parent) :
+FileReader::FileReader(unsigned int depth, QObject *parent) :
     QObject(parent),
     _stateLock(),
-    _state(IDLE, QString())
+    _state(IDLE, QString()),
+    _dataCounter(depth)
 {
 }
 
@@ -40,7 +41,12 @@ void FileReader::startReading()
             while(!inFile.atEnd())
             {
                 QByteArray qa = inFile.read(DATA_SIZE);
-                qDebug() << "emitting dataRead(): " << debugCounter;
+                _dataCounter.acquire();
+                qDebug() << "emitting dataRead(): "
+                         << debugCounter
+                         << " / "
+                         << _dataCounter.available();
+
                 emit dataRead(qa);
                 debugCounter++;
             }
@@ -48,6 +54,13 @@ void FileReader::startReading()
         
         changeState(STARTED, State(IDLE, QString()));
     }
+}
+
+void FileReader::processedChunk()
+{
+    qDebug() << "called processedChunk()";
+    _dataCounter.release();
+    qDebug() << "released data counter: " << _dataCounter.available();
 }
 
 FileReader::~FileReader()

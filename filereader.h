@@ -5,6 +5,7 @@
 #include <QPair>
 #include <QThread>
 #include <QMutex>
+#include <QSemaphore>
 
 /* A FileReader reads data from a file and periodically emits a signal
  * containing this data.
@@ -40,7 +41,7 @@ public:
 
     typedef QPair<ReadingState, QString> State;
 
-    explicit FileReader(QObject *parent = 0);
+    explicit FileReader(unsigned int depth, QObject *parent = 0);
     ~FileReader();
 
     State state();
@@ -53,10 +54,18 @@ public slots:
     void fileSelected(QString fileName);
     void startReading();
 
+    /* Call this when a chunk of data has been processed and the reader can
+     * continue to read more data. It is safe to call this from another thread.
+     */
+    void processedChunk();
+
 private:
     /* The mutex for the "reading state"/filename state of the FileReader. */
     QMutex _stateLock;
     State _state;
+
+    /* The semaphore for not emitting too much data. */
+    QSemaphore _dataCounter;
 
     /* Checks whether the old reading state matches the desired new state, and
      * returns true if and only if they match. The caller needs to implement the

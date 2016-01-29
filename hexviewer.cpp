@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <iostream>
 
+#include <QDebug>
 #include <QObject>
 #include <QThread>
 #include <QFileDialog>
@@ -10,10 +11,12 @@
 #include "hexviewer.h"
 #include "ui_hexviewer.h"
 
+const unsigned int DATA_DEPTH = 5;
+
 HexViewer::HexViewer(QWidget *parent) :
     QMainWindow(parent),
     _ui(new Ui::HexViewer),
-    _fileReader(new FileReader())
+    _fileReader(new FileReader(DATA_DEPTH))
 {
     /* Initialise threading. */
     qRegisterMetaType<FileReader::State>("FileReader::State");
@@ -86,6 +89,9 @@ void HexViewer::loadData(QByteArray data)
     }
     
     _ui->hexTextView->insertPlainText(renderString);
+
+    qDebug() << QObject::thread();
+    QMetaObject::invokeMethod(_fileReader, "processedChunk", Qt::QueuedConnection);
 }
 
 void HexViewer::updateFromFileReaderState(FileReader::State state)
