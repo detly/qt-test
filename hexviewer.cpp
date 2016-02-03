@@ -90,8 +90,7 @@ void HexViewer::loadData(QByteArray data)
     
     _ui->hexTextView->insertPlainText(renderString);
 
-    qDebug() << QObject::thread();
-    QMetaObject::invokeMethod(_fileReader, "processedChunk", Qt::QueuedConnection);
+    _fileReader->processedChunk();
 }
 
 void HexViewer::updateFromFileReaderState(FileReader::State state)

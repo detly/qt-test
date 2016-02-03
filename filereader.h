@@ -46,6 +46,11 @@ public:
 
     State state();
 
+    /* Call this when a chunk of data has been processed and the reader can
+     * continue to read more data. It is safe to call this from another thread.
+     */
+    void processedChunk();
+
 signals:
     void dataRead(QByteArray data);
     void stateChanged(FileReader::State newState);
@@ -53,11 +58,6 @@ signals:
 public slots:
     void fileSelected(QString fileName);
     void startReading();
-
-    /* Call this when a chunk of data has been processed and the reader can
-     * continue to read more data. It is safe to call this from another thread.
-     */
-    void processedChunk();
 
 private:
     /* The mutex for the "reading state"/filename state of the FileReader. */
